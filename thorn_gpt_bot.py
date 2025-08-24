@@ -1,14 +1,13 @@
-import os
 import random
 import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from openai import OpenAI
 
-# --- CONFIG ---
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-ADMIN_ID = os.getenv("ADMIN_ID")  # Your Telegram user ID for reports
+# --- MANUAL INPUT IN TERMINAL ---
+TELEGRAM_TOKEN = input("Enter your Telegram Bot Token: ")
+OPENAI_API_KEY = input("Enter your OpenAI API Key: ")
+ADMIN_ID = input("Enter your Telegram User ID (for reports): ")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -24,7 +23,7 @@ Never act friendly.
 # Track users
 users_set = set()
 
-# Command handlers
+# --- Command Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("👁 ThornGPT has awakened. Speak your mortal words... 🔥")
     await log_user(update, context)
@@ -74,7 +73,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"🔥 {reply}")
     await log_user(update, context)
 
-# Log user and report to admin
+# --- User Reporting ---
 async def log_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if user.username:
@@ -88,10 +87,10 @@ async def log_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=f"👁 ThornGPT Report:\nTotal unique users: {len(users_set)}\nUsernames/IDs: {', '.join(list(users_set))}"
         )
 
-# Main
+# --- Main ---
 def main():
     if not TELEGRAM_TOKEN or not OPENAI_API_KEY or not ADMIN_ID:
-        raise ValueError("⚠️ Set TELEGRAM_TOKEN, OPENAI_API_KEY, and ADMIN_ID as env variables!")
+        raise ValueError("⚠️ All credentials must be entered manually before running!")
 
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
@@ -101,7 +100,7 @@ def main():
     app.add_handler(CommandHandler("summon", summon))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
-    logger.info("🔥 ThornGPT Telegram Bot Online with reporting...")
+    logger.info("🔥 ThornGPT Telegram Bot Online with manual input...")
     app.run_polling()
 
 if __name__ == "__main__":
